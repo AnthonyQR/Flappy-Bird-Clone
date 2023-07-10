@@ -159,7 +159,7 @@ public class GameManagerScript : MonoBehaviour
         scoreText.text = scoreCounter.ToString();
         if (scoreCounter > bestScore) {
             bestScore++;
-            bestScoreText.text = string.Format("Best: {0}", bestScore.ToString());
+            bestScoreText.text = string.Format("Best:{0}", bestScore.ToString());
         }
     }
 }
