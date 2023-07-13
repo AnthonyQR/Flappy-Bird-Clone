@@ -12,6 +12,8 @@ public class PlayerScript : MonoBehaviour
     public int playerJumpHeight;
     public Vector2 playerStartingPosition;
 
+    public Animator animator;
+
     // Game Manager
     public GameManagerScript gameManager;
 
@@ -37,6 +39,8 @@ public class PlayerScript : MonoBehaviour
         gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManagerScript>();
         GameManagerScript.startNewGame += EnablePlayer;
         GameManagerScript.stopGame += DisablePlayer;
+        GameManagerScript.inMainMenuEvent += PlayerMainMenu;
+
 
         this.enabled = false;
     }
@@ -44,6 +48,7 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        animator.SetFloat("Velocity", playerPhysics.velocity.y);
     }
 
     void OnCollisionEnter2D(Collision2D other)
@@ -51,6 +56,8 @@ public class PlayerScript : MonoBehaviour
         gameManager.gameIsRunning = false;
         gameManager.gameCanStart = false;
         playerPhysics.constraints = RigidbodyConstraints2D.FreezeAll;
+        animator.SetBool("PlayerAlive", false);
+        animator.SetBool("GameStarted", false);
         gameOver();
     }
     void OnTriggerEnter2D(Collider2D other)
@@ -62,11 +69,19 @@ public class PlayerScript : MonoBehaviour
     {
         this.enabled = true;
         player.transform.position = playerStartingPosition;
+        animator.SetBool("InGame", true);
+        animator.SetBool("PlayerAlive", true);
     }
     void DisablePlayer()
     {
         playerPhysics.constraints = RigidbodyConstraints2D.FreezeAll;
         this.enabled = false;
+    }
+
+    void PlayerMainMenu()
+    {
+        player.transform.position = playerStartingPosition;
+        animator.SetBool("InGame", false);
     }
     public void Jump(InputAction.CallbackContext value)
     {
@@ -77,6 +92,8 @@ public class PlayerScript : MonoBehaviour
         if (gameManager.gameCanStart)
         {
             startGame();
+            animator.SetBool("PlayerAlive", true);
+            animator.SetBool("GameStarted", true);
         }
         playerPhysics.constraints = RigidbodyConstraints2D.FreezeRotation;
         gameManager.gameIsRunning = true;

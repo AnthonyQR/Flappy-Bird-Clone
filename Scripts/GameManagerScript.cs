@@ -45,6 +45,12 @@ public class GameManagerScript : MonoBehaviour
     public delegate void StopGame();
     public static event StopGame stopGame;
 
+    public delegate void InGame();
+    public static event InGame inGameEvent;
+
+    public delegate void InMainMenu();
+    public static event InMainMenu inMainMenuEvent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -120,6 +126,7 @@ public class GameManagerScript : MonoBehaviour
         scoreText.text = scoreCounter.ToString();
 
         stopGame();
+        inMainMenuEvent();
     }
 
     void QuitGame()
