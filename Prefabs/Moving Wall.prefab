@@ -286,7 +286,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6236673011239330153}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -312,8 +312,8 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   movingWallCollider: {fileID: 6062714648668938831}
   wallMoveSpeed: 0.1
-  wallYPositionFloor: -25
-  wallYPositionCeiling: 25
+  wallYPositionFloor: -23
+  wallYPositionCeiling: 23
   newPosition: {x: 0, y: 0}
 --- !u!61 &6062714648668938831
 BoxCollider2D:

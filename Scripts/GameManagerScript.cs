@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManagerScript : MonoBehaviour
 {
     [Header("Game State Checks")]
     public bool gameIsRunning = false;
     public bool gameCanStart = false;
-    public bool inMainMenu = true;
 
     [Header("Wall Spawing")]
     public float timeToSpawnWall;
@@ -30,11 +30,6 @@ public class GameManagerScript : MonoBehaviour
     public GameObject bestScoreObject;
     public TextMeshProUGUI bestScoreText;
 
-    [Header("Main Menu UI")]
-    public GameObject mainMenuObject;
-    public Button startButton;
-    public Button quitButton;
-
     [Header("Game Over UI")]
     public Button restartButton;
     public Button returnToMainMenuButton;
@@ -51,16 +46,18 @@ public class GameManagerScript : MonoBehaviour
     public delegate void InMainMenu();
     public static event InMainMenu inMainMenuEvent;
 
+    public AudioSource soundPlayer;
+    public AudioClip scoreSound;
+
     // Start is called before the first frame update
     void Start()
     {
         gameIsRunning = false;
-        gameCanStart = false;
-        inMainMenu = true;
-        gameUIObject.SetActive(false);
-        mainMenuObject.SetActive(true);
-        startGameText.SetActive(false);
+        gameCanStart = true;
+        gameUIObject.SetActive(true);
+        startGameText.SetActive(true);
         gameOverText.SetActive(false);
+        soundPlayer = this.GetComponent<AudioSource>();
 
         scoreText = scoreObject.GetComponent<TextMeshProUGUI>();
         bestScoreText = bestScoreObject.GetComponent<TextMeshProUGUI>();
@@ -72,10 +69,8 @@ public class GameManagerScript : MonoBehaviour
         }
         bestScoreText.text = string.Format("Best: {0}", bestScore.ToString());
 
-        startButton.onClick.AddListener(SetupGame);
-        quitButton.onClick.AddListener(QuitGame);
         restartButton.onClick.AddListener(Restart);
-        returnToMainMenuButton.onClick.AddListener(ReturnToMainMenu);
+        returnToMainMenuButton.onClick.AddListener(ToMainMenu);
 
         PlayerScript.startGame += StartGame;
         PlayerScript.gameOver += GameOver;
@@ -97,44 +92,8 @@ public class GameManagerScript : MonoBehaviour
         
     }
 
-    void SetupGame()
-    {
-        gameIsRunning = false;
-        gameCanStart = true;
-        inMainMenu = false;
-        gameUIObject.SetActive(true);
-        mainMenuObject.SetActive(false);
-        startGameText.SetActive(true);
-        gameOverText.SetActive(false);
-
-        startNewGame();
-    }
-
-    void ReturnToMainMenu()
-    {
-        gameUIObject.SetActive(false);
-        mainMenuObject.SetActive(true);
-        startGameText.SetActive(false);
-        gameOverText.SetActive(false);
-
-        foreach (Transform child in movingWallSpawnPosition.transform)
-        {
-            Destroy(child.gameObject);
-        }
-        timeToSpawnWallCountdown = 0;
-        scoreCounter = 0;
-        scoreText.text = scoreCounter.ToString();
-
-        stopGame();
-        inMainMenuEvent();
-    }
-
-    void QuitGame()
-    {
-        Application.Quit();
-    }
-
     void StartGame() {
+        Debug.Log(startGameText.GetType());
         startGameText.SetActive(false);
         gameIsRunning = true;
     }
@@ -160,8 +119,15 @@ public class GameManagerScript : MonoBehaviour
         startNewGame();
     }
 
+    void ToMainMenu()
+    {
+        Application.Quit();
+    }
+
     void ScorePoint()
     {
+        soundPlayer.clip = scoreSound;
+        soundPlayer.PlayOneShot(scoreSound);
         scoreCounter++;
         scoreText.text = scoreCounter.ToString();
         if (scoreCounter > bestScore) {

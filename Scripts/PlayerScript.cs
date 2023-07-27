@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,7 +11,7 @@ public class PlayerScript : MonoBehaviour
     public BoxCollider2D playerCollider;
     public Rigidbody2D playerPhysics;
     public int playerJumpHeight;
-    public Vector2 playerStartingPosition;
+    public Vector3 playerStartingPosition;
 
     public Animator animator;
 
@@ -39,10 +40,8 @@ public class PlayerScript : MonoBehaviour
         gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManagerScript>();
         GameManagerScript.startNewGame += EnablePlayer;
         GameManagerScript.stopGame += DisablePlayer;
-        GameManagerScript.inMainMenuEvent += PlayerMainMenu;
 
-
-        this.enabled = false;
+        this.enabled = true;
     }
 
     // Update is called once per frame
@@ -53,11 +52,32 @@ public class PlayerScript : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D other)
     {
-        gameManager.gameIsRunning = false;
-        gameManager.gameCanStart = false;
-        playerPhysics.constraints = RigidbodyConstraints2D.FreezeAll;
+        playerPhysics.constraints = RigidbodyConstraints2D.FreezeRotation;
         animator.SetBool("PlayerAlive", false);
         animator.SetBool("GameStarted", false);
+        if (gameManager.gameIsRunning && other.gameObject.tag != "Ground")
+        {
+            animator.Play("Player_Dead");
+            playerPhysics.velocity = new Vector2(0, playerJumpHeight);
+            if (other.gameObject.tag != "Ceiling")
+            {
+                Transform collidedObjects = other.gameObject.transform.parent.GetComponent<Transform>();
+                collidedObjects.GetComponent<BoxCollider2D>().enabled = false;
+                foreach (Transform pipeTransform in collidedObjects)
+                {
+                    Debug.Log("Hello");
+                    pipeTransform.GetComponent<BoxCollider2D>().enabled = false;
+                }
+            }
+            playerPhysics.constraints = RigidbodyConstraints2D.FreezePositionX;
+        }
+        else if (other.gameObject.tag == "Ground")
+        {
+            animator.speed = 0;
+            playerPhysics.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+        gameManager.gameIsRunning = false;
+        gameManager.gameCanStart = false;
         gameOver();
     }
     void OnTriggerEnter2D(Collider2D other)
@@ -68,21 +88,17 @@ public class PlayerScript : MonoBehaviour
     void EnablePlayer()
     {
         this.enabled = true;
+        animator.speed = 1;
+        playerPhysics.constraints = RigidbodyConstraints2D.FreezeAll;
         player.transform.position = playerStartingPosition;
         animator.SetBool("InGame", true);
         animator.SetBool("PlayerAlive", true);
     }
     void DisablePlayer()
-    {
-        playerPhysics.constraints = RigidbodyConstraints2D.FreezeAll;
+    {  
         this.enabled = false;
     }
 
-    void PlayerMainMenu()
-    {
-        player.transform.position = playerStartingPosition;
-        animator.SetBool("InGame", false);
-    }
     public void Jump(InputAction.CallbackContext value)
     {
         if(this.enabled == false || !value.started)
@@ -92,6 +108,7 @@ public class PlayerScript : MonoBehaviour
         if (gameManager.gameCanStart)
         {
             startGame();
+            animator.SetBool("InGame", true);
             animator.SetBool("PlayerAlive", true);
             animator.SetBool("GameStarted", true);
         }
