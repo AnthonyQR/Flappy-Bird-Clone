@@ -18,6 +18,11 @@ public class PlayerScript : MonoBehaviour
     // Game Manager
     public GameManagerScript gameManager;
 
+    // Sound
+    public AudioSource playerAudio;
+    public AudioClip flapSound;
+    public AudioClip hitSound;
+
     // Events
     public delegate void StartGame();
     public static event StartGame startGame;
@@ -32,6 +37,7 @@ public class PlayerScript : MonoBehaviour
     void Start()
     {
         player = GameObject.FindWithTag("Player");
+        playerAudio = player.GetComponent<AudioSource>();
         playerCollider = player.GetComponent<BoxCollider2D>();
         playerPhysics = player.GetComponent<Rigidbody2D>();
         playerStartingPosition = player.GetComponent<Transform>().position;
@@ -65,7 +71,6 @@ public class PlayerScript : MonoBehaviour
                 collidedObjects.GetComponent<BoxCollider2D>().enabled = false;
                 foreach (Transform pipeTransform in collidedObjects)
                 {
-                    Debug.Log("Hello");
                     pipeTransform.GetComponent<BoxCollider2D>().enabled = false;
                 }
             }
@@ -75,6 +80,10 @@ public class PlayerScript : MonoBehaviour
         {
             animator.speed = 0;
             playerPhysics.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+        if (gameManager.gameIsRunning)
+        {
+            playerAudio.PlayOneShot(hitSound);
         }
         gameManager.gameIsRunning = false;
         gameManager.gameCanStart = false;
@@ -112,8 +121,14 @@ public class PlayerScript : MonoBehaviour
             animator.SetBool("PlayerAlive", true);
             animator.SetBool("GameStarted", true);
         }
+        else if (!gameManager.gameCanStart && !gameManager.gameIsRunning)
+        {
+            return;
+        }
+
         playerPhysics.constraints = RigidbodyConstraints2D.FreezeRotation;
         gameManager.gameIsRunning = true;
         playerPhysics.velocity = new Vector2(0, playerJumpHeight);
+        playerAudio.PlayOneShot(flapSound);
     }
 }
